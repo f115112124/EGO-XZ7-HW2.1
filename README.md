@@ -1,19 +1,35 @@
-# EGO-XZ7 HW2.1｜自訂 GPIO IP
+# EGO-XZ7 HW2.1｜Vivado 自訂 GPIO IP 封裝
 
-本版將 LED GPIO、按鈕 GPIO 與 AXI Interconnect 封裝成 **hw2_gpio_ip 1.0**，可在新工程的 IP Catalog 加入使用。底層 GPIO 採 Xilinx AXI GPIO 2.0，自己的成果是子系統介面、位址配置、整合與封裝。
+HW2.1 的主要成果是用 Vivado IP Packager 把 LED 輸出、按鈕輸入與中斷整合成一顆可重用的 **`hw2_gpio_ip 1.0`**。封裝定義對外接腳、AXI 介面與內部位址，讓其他工程可以從 IP Catalog 加入這顆元件。
 
-ARM 的 C 程式繼續負責每 500 ms 計數、20 ms 防彈跳、按下後清零與暫停 2 秒，再從 1 恢復。COUNT／PAUSE 狀態機執行在 ARM。
-
-## 架構與介面
+## 封裝範圍
 
 ```mermaid
 flowchart LR
-  ARM[PS ARM C 程式] -->|AXI| TOP[頂層 AXI Interconnect]
-  TOP --> IP[hw2_gpio_ip]
-  IP --> LED[8 顆 LED]
-  BTN[5 顆 PL 按鈕] --> IP
-  IP -->|irq：IRQ_F2P 0| ARM
+  ARM["PS / ARM"] --> TOP["頂層 AXI Interconnect"]
+  subgraph IP["自訂 IP · hw2_gpio_ip"]
+    ROUTE["內部 AXI Interconnect"]
+    ROUTE -->|"0x00000"| LG["AXI GPIO · LED 輸出"]
+    ROUTE -->|"0x10000"| BG["AXI GPIO · 按鈕輸入"]
+  end
+  TOP -->|"S_AXI · AXI4-Lite"| ROUTE
+  LG --> LED["8 顆 LED"]
+  BTN["5 顆 PL 按鈕"] --> BG
+  BG -->|"IRQ"| ARM
 ```
+
+內部 AXI Interconnect 依位址把讀寫分送到兩組 Xilinx AXI GPIO。上層透過一個 `S_AXI` 存取這兩組 GPIO，並接上時脈、Reset、LED、按鈕與中斷。
+
+## Vivado 封裝流程
+
+1. 建立子系統 Block Design，配置 LED 和按鈕 GPIO，並接出按鈕中斷。
+2. 加入內部 AXI Interconnect，為兩組 GPIO 各分配 64 KiB 位址空間。
+3. 驗證設計並產生 HDL wrapper，再用 IP Packager 定義 IP 識別、產生 XGUI 並檢查完整性。
+4. 在獨立工程從 IP Catalog 加入這顆 IP，驗證連線、位址映射與輸出產生。
+
+封裝由 [package_gpio_ip.tcl](scripts/package_gpio_ip.tcl) 重建。介面與暫存器細節見 [GPIO IP 設計說明](docs/GPIO_IP_DESIGN.md)。
+
+## 對外介面與位址
 
 | 項目 | 本版設定 |
 |---|---|
@@ -28,9 +44,9 @@ flowchart LR
 | 時脈 | FCLK0 50 MHz |
 | 中斷 | irq 接 IRQ_F2P[0]，新 HDF 確認 ID 61／LEVEL_HIGH |
 
-內層 GPIO 封裝後不會成為 HDF 的獨立周邊，因此使用 [`hw2_gpio.h`](firmware/hw2_demo/hw2_gpio.h) 透過 Xil_In32／Xil_Out32 存取暫存器。ISR 先讀 pending，再以 Toggle-On-Write 清除現有通知，並記錄事件序號。所有等待與 LED 更新都由主程式處理。
+## 封裝與系統驗證
 
-## 驗證結果與範圍
+ARM 的 C 程式透過 [hw2_gpio.h](firmware/hw2_demo/hw2_gpio.h) 讀寫暫存器。LED 每 500 ms 加 1。按下 S6 後，GPIO 發出中斷，主程式經過 20 ms 防彈跳確認按下，將 LED 清零兩秒，再從 1 恢復。這個案例用來檢查 IP 的輸出、輸入和中斷路徑。
 
 | 項目 | 新封裝版結果 |
 |---|---|
@@ -44,7 +60,7 @@ flowchart LR
 | HDF／BIT 一致性 | 嵌入的 BIT 與匯出 BIT 相同 |
 | 新封裝版上板 | **尚待實板驗證** |
 
-原本分立 GPIO 版本已觀察到 LED 計數、S6 清零與暫停恢復。本次沒有接上板子，原版結果不能當作新封裝版上板通過的證據。
+原本使用分立 GPIO 的 HW2 已上板驗證 LED 計數與 S6 暫停恢復。HW2.1 仍待上板確認。
 
 ## 專案內容
 
@@ -56,10 +72,8 @@ flowchart LR
 | [`firmware/hw2_demo/hw2_gpio.h`](firmware/hw2_demo/hw2_gpio.h) | 自訂 IP 的 MMIO 小型介面 |
 | `scripts/` | 可重現封裝、主系統建置、硬體匯出與 SDK 建置來源 |
 | `tests/` | 從 Catalog 建立 IP 的 AXI 功能測試平台 |
-| `constraints/`、`reference/` | 腳位約束、PS7 參數及子系統 BD 重建來源 |
+| `constraints/`、`reference/` | 腳位約束、PS7 參數與板卡設定來源 |
 | [`docs/state_machine.md`](docs/state_machine.md) | ARM 計數與防彈跳狀態機 |
-
-
 
 ## 重建順序
 
