@@ -1,0 +1,16 @@
+/ip_repo/
+/.ip_packaging_work/
+/hardware/
+/sdk/
+/export/
+/demo_ip/
+/reports/
+/.Xil/
+/xsim.dir/
+/sim_work/
+*.log
+*.jou
+*.bit
+*.elf
+*.hdf
+*.zip
