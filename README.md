@@ -1,4 +1,4 @@
-# EGO-XZ7 HW2.1（暫稱）｜自訂 GPIO IP
+# EGO-XZ7 HW2.1｜自訂 GPIO IP
 
 本版將 LED GPIO、按鈕 GPIO 與 AXI Interconnect 封裝成 **hw2_gpio_ip 1.0**，可在新工程的 IP Catalog 加入使用。底層 GPIO 採 Xilinx AXI GPIO 2.0，自己的成果是子系統介面、位址配置、整合與封裝。
 
