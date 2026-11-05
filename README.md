@@ -37,7 +37,7 @@ flowchart LR
 
 ARM 上的 [C 程式](firmware/hw2_demo/main.c) 每半秒更新一次 LED。按下 S6 後，按鈕 GPIO 會通知 ARM。程式等訊號穩定 20 毫秒，確認按下後讓 LED 熄滅兩秒，再從 1 開始計數。
 
-HW2.1 已確認能在新工程加入這顆 IP，AXI 讀寫、LED 輸出、按鈕輸入與中斷也已通過[模擬測試](tests/tb_hw2_gpio.sv)。硬體設定檔和 ARM 程式都已編譯完成，仍待上板驗證。原本使用分立 GPIO 的版本已在板上驗證 S6 的反應。[原版 HW2](https://github.com/f115112124/EGO-XZ7-HW2)
+HW2.1 已通過[模擬測試](tests/tb_hw2_gpio.sv)與編譯，也已載入實板。遠端透過 JTAG 觸發一次測試中斷後，確認 ARM 收到 IRQ 61、中斷計數增加，並把文字寫進 UART 發送端。測試結束後 LED 持續計數。實際按 S6 後的暫停恢復，以及 USB-UART 終端畫面仍待現場確認。[遠端測試紀錄](evidence/remote_irq_uart_test.txt)原本使用分立 GPIO 的版本已在板上驗證 S6 的反應。[原版 HW2](https://github.com/f115112124/EGO-XZ7-HW2)
 
 ## 中斷時會顯示什麼？
 

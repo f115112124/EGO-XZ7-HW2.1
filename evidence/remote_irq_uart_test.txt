@@ -1,0 +1,27 @@
+HW2.1 remote IRQ and UART test
+Date: 2026-11-05 (Asia/Taipei)
+Method: JTAG set GPIO interrupt pending bit once, without pressing S6.
+GPIO pending bit toggled only after reading it as zero.
+Hardware interrupt path: packaged AXI GPIO -> IRQ_F2P[0] -> GIC IRQ 61 -> ARM ISR.
+At the event-specific printf call, IRQ argument was 61 and sequence argument was 1.
+Captured the bytes immediately after each UART FIFO write, then verified printf returned.
+Temporary hardware breakpoints were removed and CPU0 was resumed.
+
+SEQUENCE_BEFORE=0
+SEQUENCE_AFTER=1
+PENDING_AFTER_ISR=0
+UART_TX_CAPTURE_BEGIN
+==== GPIO INTERRUPT RECEIVED (IRQ=61, events=1) ====
+UART_TX_CAPTURE_END
+BUTTON_BEFORE=0
+BUTTON_AFTER=0
+LED_0=184
+LED_1=185
+LED_2=186
+REMOTE_IRQ_UART_TEST_PASS
+
+Scope: actual packaged hardware IRQ delivery, ISR acknowledgement, UART transmit
+FIFO writes, and resumed LED counting passed. Capture through JTAG pauses CPU0
+between UART bytes, so this run does not measure real-time UART timing.
+Physical S6 input, debounce/pause behavior and USB-UART terminal display remain
+pending confirmation at the board.
