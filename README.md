@@ -39,6 +39,16 @@ ARM 上的 [C 程式](firmware/hw2_demo/main.c) 每半秒更新一次 LED。按�
 
 HW2.1 已確認能在新工程加入這顆 IP，AXI 讀寫、LED 輸出、按鈕輸入與中斷也已通過[模擬測試](tests/tb_hw2_gpio.sv)。硬體設定檔和 ARM 程式都已編譯完成，仍待上板驗證。原本使用分立 GPIO 的版本已在板上驗證 S6 的反應。[原版 HW2](https://github.com/f115112124/EGO-XZ7-HW2)
 
+## 中斷時會顯示什麼？
+
+GPIO 中斷送進 ARM 後，SDK Terminal 會顯示下面這行文字。events 是中斷事件的累計值。
+
+```text
+==== GPIO INTERRUPT RECEIVED (IRQ=61, events=1) ====
+```
+
+程式確認按鈕按下後，還會顯示 BUTTON 訊息，兩秒到期再顯示 Resume。按下、放開和接點彈跳都可能產生中斷，所以一次操作可能有多筆事件。ISR 先記下事件，再由主程式印出文字。
+
 ## 工程重建
 
 工程使用 EGO-XZ7 v1.0（`xc7z020clg484-1`）和 Vivado／Xilinx SDK 2018.3。[板卡設定來源](reference/SOURCES.md)

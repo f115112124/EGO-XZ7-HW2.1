@@ -107,7 +107,7 @@ int main(void)
     XTime pause_deadline = 0U;
     XTime next_count;
 
-    xil_printf("\r\nEGO-XZ7 HW2: LED counter + packaged hw2_gpio_ip interrupt\r\n");
+    xil_printf("\r\nEGO-XZ7 HW2.1: LED counter + packaged hw2_gpio_ip interrupt\r\n");
     if (initialize_gpio() != XST_SUCCESS) {
         return XST_FAILURE;
     }
@@ -135,6 +135,8 @@ int main(void)
             observed_sequence = current_sequence;
             debounce_deadline = now + ticks_for_ms(DEBOUNCE_MS);
             debounce_pending = 1;
+            xil_printf("==== GPIO INTERRUPT RECEIVED (IRQ=%d, events=%d) ====\r\n",
+                       BUTTON_INTERRUPT_ID, current_sequence);
         }
 
         if (debounce_pending && now >= debounce_deadline) {
